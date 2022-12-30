@@ -26,7 +26,7 @@ const CaloriesMinMaxRatio = {
 
 export default class Counter {
   constructor(element) {
-    this.element = element; // Проверить необходимость!!!
+    this.element = element;
     this.btnReset = element.querySelector(".form__reset-button");
     this.btnSubmit = element.querySelector(".form__submit-button");
     this.form = element.querySelector(".form"); // используется для reset в _onFormReset() и в init()
@@ -34,7 +34,6 @@ export default class Counter {
     this.age = element.querySelector("#age");
     this.height = element.querySelector("#height");
     this.weight = element.querySelector("#weight");
-
     // перечисление параметров, необходимых для работы: gender, age, weight, height, activity и т.д.
   }
 
@@ -42,34 +41,38 @@ export default class Counter {
     this.ageInt = parseInt(this.age.value);
     this.heightInt = parseInt(this.height.value);
     this.weightInt = parseInt(this.weight.value);
+    // activity, gender отправляются формой по submit в алгоритм расчета колорий
+    // небольшая валидация добавлена в input html (min, max, выделение значения поля при фокусе, type="number")
 
     this.btnReset.disabled = !(this.ageInt || this.heightInt || this.weightInt); //button reset is enabled
     this.btnSubmit.disabled = !Boolean(
       this.ageInt && this.heightInt && this.weightInt
     );
-    //+++
-    // this.physicalActivity = this.element.querySelector(
-    //   'input[name="activity"]:checked'
-    // ).value;
-
-    //  !!! activity, gender отправляются формой по submit в алгоритм расчета колорий
 
     // получение данных от пользователя
     // также можно добавить небольшую валидацию
   }
 
   _onFormReset() {
-    this.form.reset(); // reset the form
-    this.btnSubmit.disabled = this.btnReset.disabled = true; //buttons reset, submit were disabled
-    //+++
+    this.form.reset();
+    this.btnSubmit.disabled = this.btnReset.disabled = true; //отключение кнопок рассчитать и очистить
+    if (this.showResult) this.showResult.hide(); // если блок с результатми был выведен - скрыть
     // задизабленность при обновлении страницы кнопок, скрытие блока с результатом
   }
 
   _onFormSubmit(evt) {
-    this.gender = evt.get("gender").toUpperCase();
-    this.activity = evt.get("activity").toUpperCase();
+    this.genderKey = evt.get("gender").toUpperCase(); //подготовка ключа константы CaloriesFormulaConstant
+    this.activityKey = evt.get("activity").toUpperCase(); //подготовка ключа константы PhysicalActivityRatio
+    //age, weight, height определены по событию change в _onFormInput()
 
-    this.caloriesNorm = this.getCaloriesNorm();
+    this.calories = {
+      NORM: this.getCaloriesNorm(),
+      MIN: this.getCaloriesMin(),
+      MAX: this.getCaloriesMax(),
+    }; // подготовка объекта с рассчитанными калориями для передачи в Result
+
+    this.showResult = new Result(this.element);
+    this.showResult.show(this.calories);
     // вызов методов расчета калорий
     // getCaloriesNorm(), getCaloriesMin(), getCaloriesMax()
     // показ блока с результатами калорий
@@ -93,28 +96,23 @@ export default class Counter {
     // _onFormInput, _onFormReset, _onFormSubmit
   }
 
-  deinit() {
-    // удаление обработчиков событий
-    // _onFormInput, _onFormReset, _onFormSubmit
-  }
-
   getCaloriesNorm() {
     return (
       (CaloriesFormulaFactor.WEIGHT * this.weightInt +
         CaloriesFormulaFactor.HEIGHT * this.heightInt -
         CaloriesFormulaFactor.AGE * this.ageInt -
-        CaloriesFormulaConstant[this.gender]) *
-      PhysicalActivityRatio[this.activity]
+        CaloriesFormulaConstant[this.genderKey]) *
+      PhysicalActivityRatio[this.activityKey]
     );
     // перечисление констант age, weight, height, gender, activity
     // применение формулы расчета
   }
 
   getCaloriesMin() {
-    return getCaloriesNorm() * CaloriesMinMaxRatio.MIN;
+    return this.getCaloriesNorm() * CaloriesMinMaxRatio.MIN;
   }
 
   getCaloriesMax() {
-    return getCaloriesNorm() * CaloriesMinMaxRatio.MAX;
+    return this.getCaloriesNorm() * CaloriesMinMaxRatio.MAX;
   }
 }
