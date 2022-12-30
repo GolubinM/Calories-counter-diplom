@@ -45,10 +45,8 @@ export default class Counter {
     // небольшая валидация добавлена в input html (min, max, выделение значения поля при фокусе, type="number")
 
     this.btnReset.disabled = !(this.ageInt || this.heightInt || this.weightInt); //button reset is enabled
-    this.btnSubmit.disabled = !Boolean(
-      this.ageInt && this.heightInt && this.weightInt
-    );
-
+    this.btnSubmit.disabled = !this.form.checkValidity();
+    
     // получение данных от пользователя
     // также можно добавить небольшую валидацию
   }
