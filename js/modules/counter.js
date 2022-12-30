@@ -111,10 +111,10 @@ export default class Counter {
   }
 
   getCaloriesMin() {
-    return getCaloriesNorm() / 1.15;
+    return getCaloriesNorm() * CaloriesMinMaxRatio.MIN;
   }
 
   getCaloriesMax() {
-    return getCaloriesNorm() * 1.15;
+    return getCaloriesNorm() * CaloriesMinMaxRatio.MAX;
   }
 }
